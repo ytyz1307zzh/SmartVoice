@@ -54,9 +54,14 @@ def call_ollama_no_preload(generate_args: Dict, model: str, prompt: str):
     Actually, I found that if this function was run once, then the created ollama process will remain running in the background,
     which works like a 'preload'.
     '''
-    messages = [{
-        "role": "user",
-        "content": prompt
+    messages = [
+        #{
+            #"role": "system",
+            #"content": "You are a helpful assistant, but your response should be as concise as possible."
+        #},
+        {
+            "role": "user",
+            "content": prompt
     }]
 
     start_time = time.time()
@@ -70,6 +75,7 @@ def call_ollama_no_preload(generate_args: Dict, model: str, prompt: str):
             "top_p": generate_args["top_p"],
         },
     )
+    print(f'Time taken using no_preload: {time.time() - start_time:.2f}')
 
     response = response_body["message"]["content"].strip()
 
@@ -87,12 +93,14 @@ if __name__ == "__main__":
         "top_p": 0.0
     }
     model = "qwen2.5:0.5b-instruct-q2_K"
-    prompt = "Repeat the following paragraph word by word: Qwen2.5 is the new series of Qwen large language models. A number of base language models and instruction-tuned models are released."
+    prompt = "Repeat the following paragraph in English word by word:\nQwen2.5 is the new series of Qwen large language models. A number of base language models and instruction-tuned models are released."
+    
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct")
     start_time = time.time()
     # response = call_ollama_preload(generate_args, model, tokenizer, prompt)
     response = call_ollama_no_preload(generate_args, model, prompt)
-    print('THe whole function finished. Call time: ', round(time.time() - start_time, 2))
+    print('The whole function finished. Call time: ', round(time.time() - start_time, 2))
     print(response)
+    print(f'Word count: {len(response.split())}')
 '''
     
