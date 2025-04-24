@@ -1,33 +1,15 @@
 import subprocess
 
-def run_asr_and_save_output():
-    # 启动ASR进程
-    cmd = [
-        "./stream",
-        "-m", "models/ggml-tiny.en.bin",
-        "--step", "4000",
-        "--length", "8000",
-        "-c", "0",
-        "-t", "4",
-        "-ac", "512"
+def run_whisper(wav_path, model_path="models/ggml-tiny.en.bin"):
+    command = [
+        "./main",  # 如果你用的是 ./stream 或其他名字，请改这里
+        "-m", model_path,
+        "-f", wav_path,
+        "-otxt"  # 输出为文本文件
     ]
+    subprocess.run(command)
+    print("ASR processing complete.")
 
-    # 打开输出文件
-    with open("output.txt", "w", encoding="utf-8") as outfile:
-        # 启动子进程
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-
-        try:
-            # 实时读取ASR输出
-            for line in process.stdout:
-                print(line, end="")          # 打印到控制台（可选）
-                outfile.write(line)          # 写入文件
-                outfile.flush()              # 实时写入磁盘
-        except KeyboardInterrupt:
-            print("\n[INFO] Interrupted by user. Terminating ASR...")
-            process.terminate()
-        finally:
-            process.wait()
-
-if __name__ == "__main__":
-    run_asr_and_save_output()
+def read_transcript(filepath="output.txt"):
+    with open(filepath, "r", encoding="utf-8") as f:
+        return f.read().strip()
