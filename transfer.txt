@@ -1,15 +1,16 @@
-import subprocess
+import torch
+from transformers import AutoProcessor, MoonshineForConditionalGeneration
+from datasets import load_dataset
 
-def run_whisper(wav_path, model_path="models/ggml-tiny.en.bin"):
-    command = [
-        "./main",  # 如果你用的是 ./stream 或其他名字，请改这里
-        "-m", model_path,
-        "-f", wav_path,
-        "-otxt"  # 输出为文本文件
-    ]
-    subprocess.run(command)
-    print("ASR processing complete.")
+processor = AutoProcessor.from_pretrained("UsefulSensors/moonshine-tiny")
+model = MoonshineForConditionalGeneration.from_pretrained("UsefulSensors/moonshine-tiny")
 
-def read_transcript(filepath="output.txt"):
-    with open(filepath, "r", encoding="utf-8") as f:
-        return f.read().strip()
+ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+audio_array = ds[0]["audio"]["array"]
+
+inputs = processor(audio_array, return_tensors="pt")
+
+generated_ids = model.generate(**inputs)
+
+transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+print(transcription)
